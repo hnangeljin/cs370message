@@ -46,17 +46,32 @@ public class register extends HttpServlet {
 		Statement stmt = null;
 		String userName = request.getParameter("userName");
 		String password = request.getParameter("password");
-		System.out.println("user: " + userName +"\n" + " password: " +password);
-		String salt = BCrypt.gensalt(12);
+		System.out.println("register for user: " + userName);
+		String salt = BCrypt.gensalt(12);//use Bcrypt and salt for save password
 		String hashed_password = BCrypt.hashpw(password, salt);
 		try {
 			stmt = con.createStatement();
+			//register user
 		    String sql = "INSERT INTO `messageusers`(username,password,salt) VALUE ('"+userName+"','"+hashed_password+"','"+salt+"');";
 		    stmt.executeUpdate(sql);
-		    con.close();
+		    stmt.close();
+		    //query the user_id
+		    String stmtQuery2 = "select user_id from messageusers u where u.username = "+ "'"+ userName + "'";
+			PreparedStatement pstmt2 = null;
+			ResultSet rs2 = null;
+			pstmt2 = con.prepareStatement(stmtQuery2);
+			rs2 = pstmt2.executeQuery();
+			rs2.next();
+			String id = rs2.getString("user_id");
+			resp.put("user_id", id);
+			rs2.close();
+			pstmt2.close();
+			con.close();
 		    resp.put("status", "successful");
+		    System.out.println("register successful for user : " + userName);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
+			System.out.println("register failed for user : " + userName);
 			resp.put("status", "failed");
 		}
 		response.getWriter().append(resp.toString());

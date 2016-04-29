@@ -42,8 +42,8 @@ public class login extends HttpServlet {
 		JSONObject resp = new JSONObject();
 		String userName = request.getParameter("userName");
 		String password = request.getParameter("password");
+		System.out.println("login for user : " + userName);
 		String stmtQuery = "select * from messageusers u where u.username = "+ "'"+ userName + "'";
-		
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try {
@@ -52,7 +52,7 @@ public class login extends HttpServlet {
 			rs.next();
 	        String p = rs.getString("password");
 	        String s = rs.getString("salt");
-	        
+	        String id = rs.getString("user_id");
 	        rs.close();
 	        pstmt.close();
 			
@@ -60,14 +60,24 @@ public class login extends HttpServlet {
 			String hashed_password = BCrypt.hashpw(password, s);
 			if (hashed_password.equals(p)){
 				resp.put("status", "sucessful");
+				resp.put("user_id", id);
+				System.out.println("login successful for user : " + userName);
 			}else{
 				resp.put("status", "failed");
+				resp.put("user_id", "");
+				System.out.println("login fail for user : " + userName);
+				System.out.println("Error: Worng password");
 			}
+			
 			
 		
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
 			resp.put("status", "failed");
+			resp.put("user_id", "");
+			System.out.println("login fail for user : " + userName);
+			System.out.println("Error: First Query");
+		
 		}
         
 		
