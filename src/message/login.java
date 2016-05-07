@@ -42,29 +42,32 @@ public class login extends HttpServlet {
 		JSONObject resp = new JSONObject();
 		String userName = request.getParameter("userName");
 		String password = request.getParameter("password");
+//		String userName = "ddddd";
+//		String password = "1212";
 		System.out.println("login for user : " + userName);
-		String stmtQuery = "select * from messageusers u where u.username = "+ "'"+ userName + "'";
+		String stmtQuery = "select * from messageusers u where u.username = ?";
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try {
 			pstmt = con.prepareStatement(stmtQuery);
+			pstmt.setString(1, userName);
 			rs = pstmt.executeQuery();
 			rs.next();
 	        String p = rs.getString("password");
 	        String s = rs.getString("salt");
 	        String id = rs.getString("user_id");
+	        String token = rs.getString("login_token");;
 	        rs.close();
 	        pstmt.close();
-			
 			con.close();
 			String hashed_password = BCrypt.hashpw(password, s);
 			if (hashed_password.equals(p)){
+				resp.put("loginToken", token);
 				resp.put("status", "sucessful");
 				resp.put("user_id", id);
 				System.out.println("login successful for user : " + userName);
 			}else{
 				resp.put("status", "failed");
-				resp.put("user_id", "");
 				System.out.println("login fail for user : " + userName);
 				System.out.println("Error: Worng password");
 			}
@@ -74,7 +77,6 @@ public class login extends HttpServlet {
 		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
 			resp.put("status", "failed");
-			resp.put("user_id", "");
 			System.out.println("login fail for user : " + userName);
 			System.out.println("Error: First Query");
 		
